@@ -347,7 +347,7 @@ class Chef
     # values here (the set values are explicitly mixed in again later), but there is
     # no mixlib-config API to get a Hash back with only the default values.
     #
-    # Assumption:  since base_mixlib_config is the lowest precedence it doesn't matter
+    # Assumption:  since config_file_defaults is the lowest precedence it doesn't matter
     # that we include the set values here, but this is a hack and makes the name of the
     # method a lie.  FIXME: make the name not a lie by adding an API to mixlib-config.
     #
@@ -399,7 +399,7 @@ class Chef
       return :cli if @original_config.include? key
       return :config if config_file_settings.key? key
       return :cli_default if default_config.include? key
-      return :config_default if base_mixlib_config.key? key # must come after :config check
+      return :config_default if config_file_defaults.key? key # must come after :config check
 
       nil
     end
