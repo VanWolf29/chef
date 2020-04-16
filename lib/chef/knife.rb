@@ -348,24 +348,29 @@ class Chef
     # no mixlib-config API to get a Hash back with only the default values.
     #
     # Assumption:  since base_mixlib_config is the lowest precedence it doesn't matter
-    # that we include the set values here.
+    # that we include the set values here, but this is a hack and makes the name of the
+    # method a lie.  FIXME: make the name not a lie by adding an API to mixlib-config.
     #
-    def base_mixlib_config
-      Chef::Config[:knife].save(true)
+    # @api private
+    #
+    def config_file_defaults
+      Chef::Config[:knife].save(true) # this is like "dup" to a (real) Hash, and includes default values (and user set values)
     end
 
     # This is only the user-set mixlib-config values.  We do not include the defaults
     # here so that the config defaults do not override the cli defaults.
     #
+    # @api private
+    #
     def config_file_settings
-      Chef::Config[:knife].save(false)
+      Chef::Config[:knife].save(false) # this is like "dup" to a (real) Hash, and does not include default values (just user set values)
     end
 
     # config is merged in this order (inverse of precedence)
-    #  base_mixlib_config   - Chef::Config[:knife] defaults
-    #  default_config       - mixlib-cli defaults (accessor from the mixin)
-    #  config_file_settings - Chef::Config[:knife] settings
-    #  config               - mixlib-cli settings (accessor from the mixin)
+    #  config_file_defaults - Chef::Config[:knife] defaults from chef-config (XXX: this also includes the settings, but they get overwritten)
+    #  default_config       - mixlib-cli defaults (accessor from mixlib-cli)
+    #  config_file_settings - Chef::Config[:knife] user settings from the client.rb file
+    #  config               - mixlib-cli settings (accessor from mixlib-cli)
     #
     def merge_configs
       # Update our original_config - if someone has created a knife command
@@ -374,7 +379,7 @@ class Chef
       @original_config = config.dup
       # other code may have a handle to the config object, so use Hash#replace to deliberately
       # update-in-place.
-      config.replace(base_mixlib_config.merge(default_config).merge(config_file_settings).merge(config))
+      config.replace(config_file_defaults.merge(default_config).merge(config_file_settings).merge(config))
     end
 
     #
